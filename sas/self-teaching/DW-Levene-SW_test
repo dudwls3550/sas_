@@ -1,0 +1,108 @@
+                   - SAS -
+data example;
+input group value;
+datalines;
+1 90
+1 85
+1 88
+1 92
+1 87
+2 75
+2 80
+2 78
+2 85
+2 82
+
+run;
+
+
+             /*Durbin-Watson test*/
+/*독립성 검증 _ Durbin-Watson test*/
+/* 2를 기준으로 0에 가까우면 정적인 상관관계, 4에 가까우면 부적인 상관관계 */
+proc reg data=example;
+model value = group;
+output out = residuals r =resid;
+run;
+
+/* 잔차에 대한 Durbin-Watson test 수행 */
+proc autoreg data = residuals;
+model resid = / dw;
+run;
+
+
+             /*Levene's test*/
+proc glm data = example;
+class group;
+model value = group;
+means group / hovetest = levene;
+run;
+
+
+             /*Shapiro-Wilk test*/
+proc univariate data = example normal;
+var value;
+probplot value / normal(mu=est sigma= est);
+run;
+
+
+
+                 - SAS iml-
+             /*Durbin-Watson test*/
+proc iml;
+x = {90, 85, 88, 92, 87, 75, 80, 78, 85, 82};
+group = {1, 1, 1, 1, 1, 2, 2, 2, 2, 2};
+
+idx1 = loc(group = 1);
+idx2 = loc(group = 2);
+
+x1 = x[idx1];
+x2 = x[idx2];
+n1 = nrow(x1);
+n2 = nrow(x2);
+
+t1 = t(1:n1);
+t2 = t(1:n2);
+
+x1_design = j(n1, 1, 1) || t1; /* 그룹 1의 디자인 행렬 */
+x2_design = j(n2, 1, 1) || t2; /* 그룹 2의 디자인 행렬 */
+
+  /* 회귀 계수 계산 (최소제곱법) */
+beta1 = inv(x1_design`*x1_design) * x1_design`*x1;
+deta2 = inv(x2_design`*x2_design) * x2_design`*x2;
+
+  /* 예측 값 계산 */
+x1_pred = x1_design * beta1;
+x2_pred = x2_design * beta2;
+
+   /* 잔차 계산 */
+resid1 = x1 - x1_pred;
+resid2 = x2 - x2_pred;
+
+   /* Durbin-Watson 통계량 계산 */
+   /* 그룹 1 */
+num1 = sum((resid1[2:nrow(resid1)] - resid1[1:nrow(resid1)-1)##2);
+denom1 = sum(resid1##2);
+dw_stat1 = num1 / denom1;
+
+   /* 그룹 2 */
+num2 = sum((resid2[2:nrow(resid2)] - resid2[1:nrow(resid2)-1])##2);
+denom2 = sum(resid2##2);
+dw_stat2 = num2 / denom2;
+print dw_stat1 dw_stat2;
+
+
+             /*Levene's test*/
+proc iml;
+x= {90, 85, 88, 92, 87, 75, 80, 78, 85, 82};
+group = {1,1,1,1,1,2,2,2,2,2};
+
+call LeveneTest(x,group);
+
+
+             /*Shapiro-Wilk test*/
+proc iml;
+x= {90, 85, 88, 92, 87, 75, 80, 78, 85, 82};
+group = {1,1,1,1,1,2,2,2,2,2};
+
+call swtest(x) p_value;
+print p_value;
