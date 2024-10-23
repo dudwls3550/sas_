@@ -1,0 +1,33 @@
+     /* sas */
+ /* poisson test */
+data poisson_test;
+ input count freq;
+datalines;
+0 3
+1 7
+2 5
+3 4
+4 1
+run;
+
+proc freq data = poisson_test;
+ tables count / chisq testp=(0.15 0.35 0.25 0.15 0.10);
+ weight freq;
+run;
+
+     /* sas iml */
+proc iml;
+count = {0, 1, 2, 3, 4};
+freq = {3, 7, 5, 4, 1};
+
+lambda = sum(count # freq) / sum(freq);
+
+expected = (exp(-lambda) # lambda ## count) / fact (count);
+expected = expected * sum(freq);
+
+chi_square = sum((freq - expected)##2 / expected );
+
+df = nrow(count)-1;
+pv = 1- probchi(chi_square,df);
+
+print count freq expected lambda chi_square pv;
