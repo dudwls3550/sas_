@@ -1,5 +1,7 @@
 # SAS
 
+![SAS](https://img.shields.io/badge/SAS-Statistical%20Software-blue)
+
 대학 진학중 배웠던 통계 기술을 github에 기록하기 위해 만든 내용이다.
 짧은 기간에 배웠던 내용으로 많이 영향가는 없지만 자주 들어와 복습하고 공부하기 위해 
 
